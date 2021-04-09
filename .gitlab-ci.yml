@@ -1,0 +1,67 @@
+# 依赖镜像 node
+image: node:10.16.0
+
+# 定义全局变量，可以在构建阶段使用
+variables: 
+
+
+before_script:
+  - echo "======== before script ========"
+  - npm config set registry https://registry.npm.taobao.org
+
+after_script:
+  - echo "======== after script ========"
+
+# 全局缓存
+cache: &global_cache
+    untracked: true
+    # 根据项目需要,将全局数据缓存在不同的key下
+    key: "${CI_PROJECT_PATH_SLUG}-public-workOrderFlow"
+    paths:
+        - node_modules/
+        - package-lock.json
+
+
+
+# ---------------------------------------
+#              PIPELINES
+# 定义阶段 stages
+# 串型stage.
+# 相同的stage下的任务是并行执行
+# ---------------------------------------
+stages:
+  - build
+  - deploy
+
+
+# ---------------------------------------
+#                JOBS
+# ---------------------------------------
+
+# 定义 job - build 项目
+job1 - build 阶段:
+  # 开始之前需要安装依赖
+  stage: build
+  script:
+    - yarn install
+    - yarn build
+    - echo "finish build stage"
+  only:
+    - master
+  artifacts:
+  paths:
+      - build/
+
+# 定义 job
+job2 - 发布到线上环境:
+  stage: deploy
+  script:
+    - ls
+    #######
+    # 这里可以对项目进行真实的发布
+    #######
+    - echo "finish deploy stage"
+  only:
+    - master
+  dependencies:
+    - job1-build
